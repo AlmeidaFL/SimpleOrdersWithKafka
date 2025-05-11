@@ -10,5 +10,5 @@ Content-Type: application/json
 
 {
   "userId": "user-123",
-  "value": 75.5 
+  "value": 13 
 }

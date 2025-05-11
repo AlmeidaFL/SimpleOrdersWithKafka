@@ -1,4 +1,4 @@
-﻿namespace OrderProcessor.Models;
+﻿namespace RetryProcessor.Models;
 
 public record OrderMessage
 {

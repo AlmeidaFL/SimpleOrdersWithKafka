@@ -6,4 +6,5 @@ public class Order
     public string UserId { get; set; } = string.Empty;
     public decimal Value { get; set; }
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public int RetryCount { get; set; } = 0;
 }

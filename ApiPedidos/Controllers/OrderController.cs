@@ -10,7 +10,7 @@ namespace ApiPedidos.Controllers;
 public class OrderController : ControllerBase
 {
     private readonly string boostrapServerUrl = "localhost:9092";
-    private readonly string topicName = "Order";
+    private readonly string topicName = "order";
 
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] Order order)

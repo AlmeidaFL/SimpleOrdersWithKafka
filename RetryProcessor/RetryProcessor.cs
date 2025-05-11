@@ -1,32 +1,30 @@
 ﻿using System.Text.Json;
 using Confluent.Kafka;
-using OrderProcessor.Models;
+using RetryProcessor.Models;
 
-namespace OrderProcessor;
+namespace RetryProcessor;
 
-public class OrderConsumer
+public class RetryProcessor
 {
-    private readonly string boostrapServerUrl = "localhost:9092";
-
-    private const string TopicName = "order";
+    private const string BoostrapServerUrl = "localhost:9092";
+    private const string GroupId = "retry-processor-group";
+    private const string DeadLetterTopic = "order-dlt";
     private const string RetryTopic = "order-retry";
-    
-    private readonly HashSet<Guid> processedOrders = new();
+    private const string OrderTopic = "order";
+    private const int MaxRetries = 3;
     
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         var consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = boostrapServerUrl,
-            GroupId = "order-consumer-group",
+            BootstrapServers = BoostrapServerUrl,
+            GroupId = GroupId,
             AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnableAutoCommit = false
+            EnableAutoCommit = false,
         };
         
-        using var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-        consumer.Subscribe(TopicName);
-        
-        Console.WriteLine($"Subscribed to: {TopicName}");
+        var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
+        consumer.Subscribe(RetryTopic);
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -36,21 +34,18 @@ public class OrderConsumer
             {
                 var message = JsonSerializer.Deserialize<OrderMessage>(consumeResult.Message.Value);
 
-                if (message is null) throw new NullReferenceException("Invalid message");
+                if (message is null) throw new Exception($"Not a valid schema for {nameof(OrderMessage)}");
 
-                if (processedOrders.Contains(message.Id))
+                message.RetryCount += 1;
+
+                if (message.RetryCount >= MaxRetries)
                 {
-                    Console.WriteLine($"Order {message.Id} has already been processed");
-                    consumer.Commit(consumeResult);
-                    continue;
+                    await SendToTopicAsync(DeadLetterTopic, message);
                 }
-
-                if (message.Value == 13) throw new Exception("Simulated failure");
-
-                Console.WriteLine($"Processing order {message}");
-                processedOrders.Add(message.Id);
-
-                consumer.Commit(consumeResult);
+                else
+                {
+                    await SendToTopicAsync(OrderTopic, message);
+                }
             }
             catch (Exception ex)
             {
@@ -64,15 +59,14 @@ public class OrderConsumer
                     return;
                 }
 
-                await SendToTopicAsync(RetryTopic, failedOrder);
-                Console.WriteLine($"[RETRY] Order requeued for retry");
+                await SendToTopicAsync(DeadLetterTopic, failedOrder);
             }
         }
     }
-
+    
     private async Task SendToTopicAsync(string topic, OrderMessage orderMessage)
     {
-        var config = new ProducerConfig { BootstrapServers = boostrapServerUrl };
+        var config = new ProducerConfig { BootstrapServers = BoostrapServerUrl };
         
         using var producer = new ProducerBuilder<string, string>(config).Build();
         await producer.ProduceAsync(topic, 

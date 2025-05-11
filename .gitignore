@@ -1,0 +1,72 @@
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# ASP.NET generated files
+wwwroot/dist/
+wwwroot/node_modules/
+wwwroot/lib/
+
+# Logs
+*.log
+logs/
+*.tlog
+
+# dotnet tools
+.dotnet/
+
+# NuGet
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml
+TestResults/
+
+# EF Core
+migrations/obj/
+
+# Publish artifacts
+publish/
+*.dbmdl
+
+# Secrets
+secrets.json
+*.pfx
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Others
+_ReSharper.*
+*.vs/
+.vsconfig
+*.orig
+
