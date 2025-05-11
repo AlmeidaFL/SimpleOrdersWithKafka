@@ -1,0 +1,14 @@
+@ApiPedidos_HostAddress = http://localhost:5043
+
+GET {{ApiPedidos_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+POST {{ApiPedidos_HostAddress}}/api/orders/
+Content-Type: application/json
+
+{
+  "userId": "user-123",
+  "value": 75.5 
+}
